@@ -1,2 +1,3 @@
 # RTA-Temperature-Controller
-Technical specifics and code for the RTA temperature controller
+
+Technical specifics, code, schematics and operating instructions for the RTA temperature controller...
