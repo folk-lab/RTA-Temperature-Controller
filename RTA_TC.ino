@@ -13,14 +13,11 @@ MAX6675 thermocouple(10, 16, 14);    // (SCK pin, CS pin, SO pin)
 #define SSR_PIN  9
 
 uint8_t state = 0;
-double Setpoint, Input, Output;
-float kp = 1;
-float ki = 0.1;
-float kd = 0.1;
+double Setpoint, Input, Output, kp, ki, kd;
 float T;
 float ramp_time_330, ramp_time_445, PID_time_330, PID_time_445;
 
-PID myPID(&Input, &Output, &Setpoint, kp, ki, kd, DIRECT);
+PID myPID(&Input, &Output, &Setpoint, &kp, &ki, &kd, DIRECT);
 
 void setup() {
   Serial.begin(9600);
@@ -28,6 +25,9 @@ void setup() {
   digitalWrite(SSR_PIN, LOW);
 
   Setpoint = 330;
+  kp = 1;
+  ki = 1;
+  kd = 1;
   Input = thermocouple.readCelsius();
   myPID.SetMode(AUTOMATIC);
   
@@ -86,6 +86,9 @@ void PID_fn(void){
     
     if (PID_time_330 > 120000){
       Setpoint = 445;
+      kp = 1;
+      ki = 1;
+      kd = 1;
     }
   }
     
