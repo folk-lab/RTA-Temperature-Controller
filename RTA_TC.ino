@@ -81,11 +81,9 @@ void setup()
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 	display.setTextColor(SSD1306_WHITE);
 	display.setTextSize(2);
-	reset_display();
-	display.println("GOOD LUCK!");
-	display.display();
-	delay(2000);
-	reset_display();
+	display.clearDisplay();
+	display.setCursor(0, 0);
+	delay(100);
 	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
 	delay(100);
 	display.display();
