@@ -1,9 +1,11 @@
 #include <SPI.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h> // need install
-#include <Adafruit_SSD1306.h> // need install
-#include <max6675.h> // need install
-#include <PID_v1.h> // need install
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <max6675.h>
+#include <PID_v1.h>
+#include <StackArray.h>
+#include "src/HeatingSchedule.h"
 
 #define SSR_PIN 9
 #define OLED_reset_PIN 7
@@ -15,7 +17,6 @@ uint8_t state = 0;
 // PID related parameters
 float Setpoint, Input, Output;
 
-float T; 
 float ramp_time_330, ramp_time_445, PID_time_330, PID_time_445;
 
 // I ripped this from our FastDAC code!
@@ -25,9 +26,9 @@ typedef struct PIDparam
 	double Input = 0.0;
 	double Output = 0.0;
 	double Setpoint = 0.0;
-	double kp = 0.9;
-	double ki = 1;
-	double kd = 0.1;
+	double kp = 0.1;
+	double ki = 1.0;
+	double kd = 0.0;
 } PIDparam;
 
 PIDparam g_pidparam[1];
@@ -40,17 +41,25 @@ PID myPID(&(g_pidparam[0].Input),
 		  g_pidparam[0].kd,
 		  DIRECT);
 
+HeatingSchedule step1(330, 1, 1, 1, 60 * 2);
+HeatingSchedule step2(445, 1, 1, 1, 60 * 2);
+
+StackArray<HeatingSchedule> schedule_stack;
+
 void PID_fn(void);
 void cool_fn(void);
-void set_pid_tune(double, double, double); // to set the tuning parameters
+void set_pid_tune(double, double, double);
 
 void setup()
 {
+	schedule_stack.push(step2);
+	schedule_stack.push(step1);
+
 	Serial.begin(9600);
 	pinMode(SSR_PIN, OUTPUT);
 	digitalWrite(SSR_PIN, LOW);
-	
-	Input = thermocouple.readCelsius();
+
+	g_pidparam[0].Input = thermocouple.readCelsius();
 	myPID.SetMode(AUTOMATIC);
 	myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
@@ -64,110 +73,93 @@ void setup()
 
 void loop()
 {
-	if (state == 0)
+	if (!schedule_stack.isEmpty())
 	{
 		PID_fn();
+		// after ramping, holding
+		schedule_stack.pop(); // pop the last entry from the stack
 	}
-	else if (state == 1)
+	else
 	{
 		cool_fn();
-	}
-	else if (state == 2)
-	{
 		display.clearDisplay();
 		display.setCursor(0, 0);
 		display.setTextSize(2);
 		display.print("DONE");
 		display.display();
 	}
-	else
-	{
-		cool_fn();
-	}
 }
 
 void PID_fn(void)
 {
-	delay(200);
-	T = thermocouple.readCelsius();
-	g_pidparam[0].Input = T;
+	double setpoint = schedule_stack.peek().setpoint;
+	double kp = schedule_stack.peek().proportional;
+	double ki = schedule_stack.peek().integral;
+	double kd = schedule_stack.peek().derivative;
+	double ht = schedule_stack.peek().hold_time;
+	double T = thermocouple.readCelsius();
 
-	myPID.Compute();
-	analogWrite(SSR_PIN, g_pidparam[0].Output);
-	display.clearDisplay();
-	display.setCursor(0, 16);
-	display.setTextSize(2);
-	display.print(T);
-	display.print((char)247);
-	display.println("C");
+	set_pid_tune(kp, ki, kd);
+	g_pidparam[0].Setpoint = setpoint;
 
-	if (T < 320 && g_pidparam[0].Setpoint == 330)
+	// ramping sequence
+	while (setpoint - T > 10.0)
 	{
-		ramp_time_330 = millis();
+		delay(200);
+		g_pidparam[0].Input = T;
+		myPID.Compute();
+		analogWrite(SSR_PIN, g_pidparam[0].Output);
+		display.clearDisplay();
+		display.setCursor(0, 16);
+		display.setTextSize(2);
+		display.print(T);
+		display.print((char)247);
+		display.println("C");
 		display.setTextSize(1);
-		display.println("Ramp to 330");
+		display.print("Ramp to ");
+		display.println(setpoint);
 		display.display();
 	}
 
-	else if (T > 320 && g_pidparam[0].Setpoint == 330)
+	unsigned long start_time = millis(); // in ms
+
+	// holding
+	while ((millis() - start_time) / 1000.0 < ht)
 	{
-		PID_time_330 = millis() - ramp_time_330;
+		delay(200);
+		g_pidparam[0].Input = T;
+		myPID.Compute();
+		analogWrite(SSR_PIN, g_pidparam[0].Output);
+		display.clearDisplay();
+		display.setCursor(0, 16);
+		display.setTextSize(2);
+		display.print(T);
+		display.print((char)247);
+		display.println("C");
 		display.setTextSize(1);
-		display.println("Hold at 330 for 2 min");
-		display.print(PID_time_330 / 1000);
+		display.print("Held for ");
+		display.print((millis() - start_time) / 1000.0);
 		display.println(" s");
 		display.display();
-
-		if (PID_time_330 > 120000)
-		{
-			g_pidparam[0].Setpoint = 445;
-			set_pid_tune(1, 1, 1);
-		}
-	}
-
-	else if (T < 435 && g_pidparam[0].Setpoint == 445)
-	{
-		ramp_time_445 = millis();
-		display.setTextSize(1);
-		display.println("Ramp to 445");
-		display.display();
-	}
-
-	else if (T > 435 && g_pidparam[0].Setpoint == 445)
-	{
-		PID_time_445 = millis() - ramp_time_445;
-		display.setTextSize(1);
-		display.println("Hold at 445 for 2 min");
-		display.print(PID_time_445 / 1000);
-		display.println(" s");
-		display.display();
-		if (PID_time_445 > 120000)
-		{
-			state = 1;
-		}
-		else
-		{
-		}
 	}
 }
 
 void cool_fn(void)
 {
-	delay(200);
-	digitalWrite(SSR_PIN, LOW); //SSR Off with HIGH pulse
-	display.clearDisplay();
-	display.setCursor(0, 0);
-	display.setTextSize(2);
-	display.println("Cooling");
-	display.print(millis() / 1000);
-	display.println(" s");
-	display.print(thermocouple.readCelsius());
-	display.print((char)247);
-	display.print("C");
-	display.display();
-	if (thermocouple.readCelsius() < 30)
+	while (thermocouple.readCelsius() > 30)
 	{
-		state = 2;
+		delay(200);
+		digitalWrite(SSR_PIN, LOW); //SSR Off with HIGH pulse
+		display.clearDisplay();
+		display.setCursor(0, 0);
+		display.setTextSize(2);
+		display.println("Cooling");
+		display.print(millis() / 1000);
+		display.println(" s");
+		display.print(thermocouple.readCelsius());
+		display.print((char)247);
+		display.print("C");
+		display.display();
 	}
 }
 
