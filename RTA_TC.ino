@@ -9,6 +9,7 @@
 
 // additional libraries included with the file
 #include <StackArray.h>
+#include "src/Bitmap.h"
 #include "src/HeatingSchedule.h"
 
 #define SSR_PIN 9
@@ -37,23 +38,39 @@ PID myPID(&(g_pidparam[0].Input),
 		  g_pidparam[0].kp,
 		  g_pidparam[0].ki,
 		  g_pidparam[0].kd,
+		  P_ON_M,
 		  DIRECT);
 
-HeatingSchedule step1(330, 1, 1, 1, 60 * 2);
-HeatingSchedule step2(445, 1, 1, 1, 60 * 2);
+/*
+Modify below 
+*/
+// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
+HeatingSchedule step1(330, 3.5, 0.9, 0.0, 30);
+HeatingSchedule step2(445, 3.5, 0.9, 0.0, 30);
+HeatingSchedule step3(50, 0, 5.0, 0.0, 1);
+/*
+Modify above
+*/
 
 StackArray<HeatingSchedule> schedule_stack;
 
 void PID_fn(void);
 void cool_fn(void);
+void reset_display(void);
 void set_pid_tune(double, double, double);
 
 void setup()
 {
+	/*
+	Modify below 
+	*/
+	schedule_stack.push(step3);
 	schedule_stack.push(step2);
 	schedule_stack.push(step1);
+	/*
+	Modify above
+	*/
 
-	Serial.begin(9600);
 	pinMode(SSR_PIN, OUTPUT);
 	digitalWrite(SSR_PIN, LOW);
 
@@ -62,10 +79,18 @@ void setup()
 	myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
-	delay(100);
-	display.setTextSize(2);
 	display.setTextColor(SSD1306_WHITE);
+	display.setTextSize(2);
+	reset_display();
+	display.println("GOOD LUCK!");
 	display.display();
+	delay(2000);
+	reset_display();
+	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
+	delay(100);
+	display.display();
+	delay(10000);
+	reset_display();
 	delay(100);
 }
 
@@ -79,9 +104,8 @@ void loop()
 	}
 	else
 	{
-		cool_fn();
 		reset_display();
-		display.print("DONE");
+		display.println("QDEV FOREVER!!");
 		display.display();
 	}
 }
@@ -99,7 +123,7 @@ void PID_fn(void)
 	g_pidparam[0].Setpoint = setpoint;
 
 	// ramping sequence
-	while (setpoint - T > 10.0)
+	while (abs(setpoint - T) > 1.0)
 	{
 		delay(200);
 		T = thermocouple.readCelsius();
@@ -109,7 +133,7 @@ void PID_fn(void)
 		reset_display();
 
 		display.println(String(T, 2) + " C");
-		display.println("Ramp: " +  String(setpoint, 2));
+		display.println("Ramp: " + String(setpoint, 2));
 		display.display();
 	}
 
@@ -125,24 +149,7 @@ void PID_fn(void)
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
 		display.println(String(T, 2) + " C");
-		display.println("Hold: " +  String((millis() - start_time)/ 1000.0, 1) + " s");
-		display.display();
-	}
-}
-
-void cool_fn(void)
-{
-	unsigned long start_time = millis(); // in ms
-	double T = thermocouple.readCelsius();
-
-	while (T > 30)
-	{
-		delay(200);
-		T = thermocouple.readCelsius();
-		digitalWrite(SSR_PIN, LOW); //SSR Off with HIGH pulse
-		reset_display();
-		display.println(String(T, 2) + " C");
-		display.println("Cooling" + String((millis() - start_time) / 1000, 1) + " s");
+		display.println("Hold: " + String((millis() - start_time) / 1000.0, 1) + " s");
 		display.display();
 	}
 }
@@ -155,11 +162,13 @@ void set_pid_tune(double kp, double ki, double kd)
 	myPID.SetTunings(g_pidparam[0].kp, g_pidparam[0].ki, g_pidparam[0].kd);
 }
 
-void reset_display(void){
+void reset_display(void)
+{
 	display.clearDisplay();
 	display.setCursor(0, 16);
 }
 
-void append_to_display(String message){
+void append_to_display(String message)
+{
 	display.println(message);
 }
