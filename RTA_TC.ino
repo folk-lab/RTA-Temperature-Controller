@@ -45,8 +45,8 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingSchedule step1(330, 4.1, 0.9, 0.0, 120);
-HeatingSchedule step2(445, 4.1, 0.9, 0.0, 120);
+HeatingSchedule step1(330, 4, 0.9, 0.0, 120);
+HeatingSchedule step2(445, 4, 0.9, 0.0, 120);
 HeatingSchedule step3(50, 0, 5.0, 0.0, 1);
 /*
 Modify above
@@ -55,7 +55,6 @@ Modify above
 StackArray<HeatingSchedule> schedule_stack;
 
 void PID_fn(void);
-void cool_fn(void);
 void reset_display(void);
 void set_pid_tune(double, double, double);
 
@@ -81,9 +80,11 @@ void setup()
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 	display.setTextColor(SSD1306_WHITE);
 	display.setTextSize(2);
-	display.clearDisplay();
-	display.setCursor(0, 0);
+	reset_display();
+	display.println("GOOD LUCK!!");
+	display.display();
 	delay(100);
+	reset_display();
 	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
 	delay(100);
 	display.display();
@@ -163,7 +164,7 @@ void set_pid_tune(double kp, double ki, double kd)
 void reset_display(void)
 {
 	display.clearDisplay();
-	display.setCursor(0, 16);
+	display.setCursor(0, 0);
 }
 
 void append_to_display(String message)
