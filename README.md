@@ -75,7 +75,9 @@ void set_pid_tune(double, double, double);
 
 void setup()
 {
-	/*
+    // We push the various heating steps onto the heating_schedule stack.
+    // Remember that a stack data structure follows "last in, first out"
+    /*
 	Modify below 
 	*/
 	heating_schedule.push(step3);
