@@ -45,8 +45,8 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingSchedule step1(330, 3.5, 0.9, 0.0, 30);
-HeatingSchedule step2(445, 3.5, 0.9, 0.0, 30);
+HeatingSchedule step1(330, 4.1, 0.9, 0.0, 120);
+HeatingSchedule step2(445, 4.1, 0.9, 0.0, 120);
 HeatingSchedule step3(50, 0, 5.0, 0.0, 1);
 /*
 Modify above
