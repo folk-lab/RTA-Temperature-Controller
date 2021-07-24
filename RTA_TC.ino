@@ -133,7 +133,7 @@ void PID_fn(void)
 		reset_display();
 
 		display.println(String(T, 2) + " C");
-		display.println("Ramp: " + String(setpoint, 2));
+		display.println("Ramp: " + String(setpoint, 0));
 		display.display();
 	}
 
