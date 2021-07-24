@@ -45,8 +45,8 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingSchedule step1(330, 4, 0.9, 0.0, 120);
-HeatingSchedule step2(445, 4, 0.9, 0.0, 120);
+HeatingSchedule step1(330, 3.8, 0.9, 0.0, 120); // Set knob to 60% full power
+HeatingSchedule step2(445, 3.8, 0.9, 0.0, 120);
 HeatingSchedule step3(50, 0, 5.0, 0.0, 1);
 /*
 Modify above
@@ -85,6 +85,7 @@ void setup()
 	display.display();
 	delay(100);
 	reset_display();
+  delay(100);
 	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
 	delay(100);
 	display.display();
