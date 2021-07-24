@@ -2,7 +2,7 @@
 
 Technical specifics, code, schematics and operating instructions for the RTA temperature controller.  Currently setup to be used with a Osram FNT 64656 HLX 275W 24V tungsten halogen lamp.  
 
-### Components
+## Components
 
 - Staco Energy Type 291 Variable transformer
 - Amveco Magnetics AA56252-024 Toroidal transformer
@@ -11,13 +11,17 @@ Technical specifics, code, schematics and operating instructions for the RTA tem
 - Adafruit OLED Display (I2C, 0.96" (24.38mm) diagonal screen size, 128 x 64 pixels)
 - MAX6675 K-Type thermocouple module
 
-### Operating Instructions
+## Operating Instructions
 
-#### Up Toggle Position - Manual
+There are two modes of operation. 
 
-- This allows the user to operate the temperature controller as before.  Simply use the variable transfomer to adjust the output.
+### Up Toggle Position - Manual
+Allows the user to operate the temperature controller as before.  Simply use the variable transfomer to adjust the output.
 
+### Down Toggle Position - PID controlled
+Automates an annealing sequence. 
 
-#### Down Toggle Position - PID controlled
+## Programming 
+The steps in an annealing schedule is specified by creating `HeatingStep` objects, and pushing them to a `StackArray`. 
 
-- This position allows the user to control the output using pulse width modulated PID.
+For every `HeatingStep` object in the `StactArray`, 

@@ -1,9 +1,9 @@
-#ifndef HEATINGSCHEDULE_H
-#define HEATINGSCHEDULE_H
+#ifndef HEATINGSTEP_H
+#define HEATINGSTEP_H
 
-struct HeatingSchedule
+struct HeatingStep
 {
-    HeatingSchedule(double setpoint,
+    HeatingStep(double setpoint,
                     double proportional,
                     double integral,
                     double derivative,

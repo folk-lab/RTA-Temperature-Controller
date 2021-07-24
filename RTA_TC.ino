@@ -10,7 +10,7 @@
 // additional libraries included with the file
 #include <StackArray.h>
 #include "src/Bitmap.h"
-#include "src/HeatingSchedule.h"
+#include "src/HeatingStep.h"
 
 #define SSR_PIN 9
 #define OLED_reset_PIN 7
@@ -45,14 +45,14 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingSchedule step1(330, 3.8, 0.9, 0.0, 120); // Set knob to 60% full power
-HeatingSchedule step2(445, 3.8, 0.9, 0.0, 120);
-HeatingSchedule step3(50, 0, 5.0, 0.0, 1);
+HeatingStep step1(330, 3.8, 0.9, 0.0, 120); // Set knob to 60% full power
+HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
+HeatingStep step3(50, 0, 5.0, 0.0, 1);
 /*
 Modify above
 */
 
-StackArray<HeatingSchedule> schedule_stack;
+StackArray<HeatingStep> heating_schedule;
 
 void PID_fn(void);
 void reset_display(void);
@@ -63,9 +63,9 @@ void setup()
 	/*
 	Modify below 
 	*/
-	schedule_stack.push(step3);
-	schedule_stack.push(step2);
-	schedule_stack.push(step1);
+	heating_schedule.push(step3);
+	heating_schedule.push(step2);
+	heating_schedule.push(step1);
 	/*
 	Modify above
 	*/
@@ -96,11 +96,11 @@ void setup()
 
 void loop()
 {
-	if (!schedule_stack.isEmpty())
+	if (!heating_schedule.isEmpty())
 	{
 		PID_fn();
 		// after ramping, holding
-		schedule_stack.pop(); // pop the last entry from the stack
+		heating_schedule.pop(); // pop the last entry from the stack
 	}
 	else
 	{
@@ -112,11 +112,11 @@ void loop()
 
 void PID_fn(void)
 {
-	double setpoint = schedule_stack.peek().setpoint;
-	double kp = schedule_stack.peek().proportional;
-	double ki = schedule_stack.peek().integral;
-	double kd = schedule_stack.peek().derivative;
-	double ht = schedule_stack.peek().hold_time;
+	double setpoint = heating_schedule.peek().setpoint;
+	double kp = heating_schedule.peek().proportional;
+	double ki = heating_schedule.peek().integral;
+	double kd = heating_schedule.peek().derivative;
+	double ht = heating_schedule.peek().hold_time;
 	double T = thermocouple.readCelsius();
 
 	set_pid_tune(kp, ki, kd);

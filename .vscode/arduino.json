@@ -1,6 +1,0 @@
-{
-    "board": "arduino:avr:micro",
-    "port": "COM6",
-    "sketch": "RTA_TC.ino",
-    "programmer": "arduino:avrisp"
-}
