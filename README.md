@@ -25,14 +25,14 @@ Automates an annealing sequence.
 
 The steps in an annealing schedule is specified by creating `HeatingStep` objects, and pushing them to a `StackArray`. A `HeatingStep` object is specified by supplying the following parameters
 1. Setpoint temperature in degress celius 
-2. The $P$ coefficient in the PID algorithm 
-3. The $I$ coefficient 
-4. The $D$ coefficient 
+2. The P coefficient in the PID algorithm 
+3. The I coefficient 
+4. The D coefficient 
 5. The number of seconds to hold at the setpoint after ramping 
 
 For example,
 ```cpp
-# heat to 445, using kp = 3.8, ki = 0.9, kd = 0, and hold for 120 seconds
+// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, and hold for 120 seconds
 HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
 ```
 
