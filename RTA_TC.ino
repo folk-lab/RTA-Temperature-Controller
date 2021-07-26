@@ -132,8 +132,9 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
-
+		display.setTextSize(1);
 		display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
+		display.setTextSize(2);
 		display.println(String(T, 2) + String((char)247) + "C");
 		display.println("Ramp: " + String(setpoint, 0));
 		display.display();
@@ -150,7 +151,9 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
-    display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
+    	display.setTextSize(1);
+		display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
+		display.setTextSize(2);
 		display.println(String(T, 2) + " C");
 		display.println("Hold: " + String((millis() - start_time) / 1000.0, 1) + " s");
 		display.display();
