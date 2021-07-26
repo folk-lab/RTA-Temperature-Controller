@@ -45,7 +45,8 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step1(330, 3.8, 0.9, 0.0, 120); // Set knob to 60% full power
+HeatingStep step0(50, 0, 5.0, 0.0, 1);
+HeatingStep step1(330, 4.7, 0.9, 0.0, 120); // Set knob to 60% full power
 HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
 HeatingStep step3(50, 0, 5.0, 0.0, 1);
 /*
@@ -66,6 +67,7 @@ void setup()
 	heating_schedule.push(step3);
 	heating_schedule.push(step2);
 	heating_schedule.push(step1);
+  heating_schedule.push(step0);
 	/*
 	Modify above
 	*/
@@ -131,7 +133,7 @@ void PID_fn(void)
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
 
-		display.println("Kp, Ki, Kd = " + String(kp) + ", " + String(ki) + ", " + String(kd) );
+		display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
 		display.println(String(T, 2) + String((char)247) + "C");
 		display.println("Ramp: " + String(setpoint, 0));
 		display.display();
@@ -148,6 +150,7 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
+    display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
 		display.println(String(T, 2) + " C");
 		display.println("Hold: " + String((millis() - start_time) / 1000.0, 1) + " s");
 		display.display();
