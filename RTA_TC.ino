@@ -117,11 +117,12 @@ void loop()
 		}		
 	}
 	else{
+		delay(200);
 		START = digitalRead(START_PIN);
-    reset_display();
-    display.println("Press");
-    display.println("Start");
-    display.display();
+		reset_display();
+		display.println("READY");
+		display.println(String(thermocouple.readCelsius(), 2) + " C");
+		display.display();
 	}
 }
 
