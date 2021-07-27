@@ -13,6 +13,9 @@
 #include "src/HeatingStep.h"
 
 #define SSR_PIN 9
+#define START_PIN 8
+
+uint8_t START = LOW;
 
 MAX6675 thermocouple(10, 16, 14); // (SCK pin, CS pin, SO pin)
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
@@ -44,8 +47,8 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-// HeatingStep step0(50, 0, 5.0, 0.0, 1);
-HeatingStep step1(330, 4.7, 0.9, 0.0, 120); // Set knob to 60% full power
+HeatingStep step0(330, 4.7, 0.9, 0.0, 1);
+HeatingStep step1(330, 4.00, 1.2, 0.0, 120); // Set knob to 60% full power
 HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
 HeatingStep step3(50, 0, 5.0, 0.0, 1);
 /*
@@ -66,13 +69,14 @@ void setup()
 	heating_schedule.push(step3);
 	heating_schedule.push(step2);
 	heating_schedule.push(step1);
-  	// heating_schedule.push(step0);
+	heating_schedule.push(step0);
 	/*
 	Modify above
 	*/
-	
+
 	delay(2000); // do not remove this delay!
 	pinMode(SSR_PIN, OUTPUT);
+	pinMode(START_PIN, INPUT);
 	digitalWrite(SSR_PIN, LOW);
 
 	g_pidparam[0].Input = thermocouple.readCelsius();
@@ -83,32 +87,41 @@ void setup()
 	display.setTextColor(SSD1306_WHITE);
 	display.setTextSize(2);
 	reset_display();
-  delay(100);
+	delay(100);
 	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
 	delay(100);
 	display.display();
 	delay(300);
-  reset_display();
-  display.println("GOOD LUCK");
-  display.display();
-  delay(1500);
+	reset_display();
+	display.println("GOOD LUCK");
+	display.display();
+	delay(1500);
 	reset_display();
 	delay(100);
 }
 
 void loop()
 {
-	if (!heating_schedule.isEmpty())
-	{
-		PID_fn();
-		// after ramping, holding
-		heating_schedule.pop(); // pop the last entry from the stack
+	if (START == HIGH){
+		if (!heating_schedule.isEmpty())
+		{
+			PID_fn();
+			// after ramping, holding
+			heating_schedule.pop(); // pop the last entry from the stack
+		}
+		else
+		{
+			reset_display();
+			display.println("COMPLETE");
+			display.display();
+		}		
 	}
-	else
-	{
-		reset_display();
-		display.println("COMPLETE");
-		display.display();
+	else{
+		START = digitalRead(START_PIN);
+    reset_display();
+    display.println("Press");
+    display.println("Start");
+    display.display();
 	}
 }
 
