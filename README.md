@@ -42,7 +42,7 @@ For every `HeatingStep` object in the `StackArray`, we first
 
 When we are done with a `HeatingStep`, we `pop` the `HeatingStep` from the `StackArray` object. The algorithm repeats until the `StackArray` is empty. At this point, the display will show 
 ```cpp
-"QDEV FOREVER!!"
+"COMPLETE"
 ```
 
 ### Example 
@@ -60,7 +60,7 @@ This would be specifed by the following section in the RTA code:
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step1(330, 3.8, 0.9, 0.0, 120); // Set knob to 60% full power
+HeatingStep step1(330, 4.7, 0.9, 0.0, 120); // Set knob to 60% full power
 HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
 HeatingStep step3(50, 0, 5.0, 0.0, 1);
 /*

@@ -4,7 +4,7 @@
 // libraries that likely need to be downloaded in library manager
 #include <PID_v1.h>
 #include <max6675.h>
-#include <Adafruit_GFX.h>
+//#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
 // additional libraries included with the file
@@ -13,10 +13,9 @@
 #include "src/HeatingStep.h"
 
 #define SSR_PIN 9
-#define OLED_reset_PIN 7
 
 MAX6675 thermocouple(10, 16, 14); // (SCK pin, CS pin, SO pin)
-Adafruit_SSD1306 display(128, 64, &Wire, 7);
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 // Ruiheng: I ripped this from our FastDAC code!
 typedef struct PIDparam
@@ -71,6 +70,8 @@ void setup()
 	/*
 	Modify above
 	*/
+	
+	delay(2000); // do not remove this delay!
 	pinMode(SSR_PIN, OUTPUT);
 	digitalWrite(SSR_PIN, LOW);
 
@@ -78,19 +79,19 @@ void setup()
 	myPID.SetMode(AUTOMATIC);
 	myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
-	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
+	display.begin(SSD1306_SWITCHCAPVCC, 0);
 	display.setTextColor(SSD1306_WHITE);
 	display.setTextSize(2);
 	reset_display();
-	display.println("GOOD LUCK!!");
-	display.display();
-	delay(100);
-	reset_display();
-    delay(100);
+  delay(100);
 	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
 	delay(100);
 	display.display();
-	delay(3000);
+	delay(300);
+  reset_display();
+  display.println("GOOD LUCK");
+  display.display();
+  delay(1500);
 	reset_display();
 	delay(100);
 }
@@ -106,7 +107,7 @@ void loop()
 	else
 	{
 		reset_display();
-		display.println("QDEV FOREVER!!");
+		display.println("COMPLETE");
 		display.display();
 	}
 }
@@ -132,11 +133,8 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
-		display.setTextSize(1);
-		display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
-		display.setTextSize(2);
-		display.println(String(T, 2) + String((char)247) + "C");
-		display.println("Ramp: " + String(setpoint, 0));
+		display.println(String(T, 2) + " C");
+		display.println("Ramp " + String(setpoint, 0));
 		display.display();
 	}
 
@@ -151,11 +149,8 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
-    	display.setTextSize(1);
-		display.println(String(kp) + ", " + String(ki) + ", " + String(kd));
-		display.setTextSize(2);
 		display.println(String(T, 2) + " C");
-		display.println("Hold: " + String((millis() - start_time) / 1000.0, 1) + " s");
+		display.println("Hold " + String((millis() - start_time) / 1000.0, 1) + "s");
 		display.display();
 	}
 }
