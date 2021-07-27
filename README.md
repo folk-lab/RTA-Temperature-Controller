@@ -6,7 +6,7 @@ Technical specifics, code, schematics and operating instructions for the RTA tem
 
 - Staco Energy Type 291 Variable transformer
 - Amveco Magnetics AA56252-024 Toroidal transformer
-- FOTEK SSR-25 DA (3-32VDC Input, 25A @ 24-380 VAC Load)
+- FOTEK SSR-25 DA (3-32VDC Input, 25A @ 24-380 VAC Load) ... OR Omega SSRL240DC25 will also work.
 - Arduino Pro Micro (ATMEGA32U4, 5V/16MHZ)
 - Adafruit OLED Display (I2C, 0.96" (24.38mm) diagonal screen size, 128 x 64 pixels)
 - MAX6675 K-Type thermocouple module
