@@ -91,11 +91,7 @@ void setup()
 	display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
 	delay(100);
 	display.display();
-	delay(300);
-	reset_display();
-	display.println("GOOD LUCK");
-	display.display();
-	delay(1500);
+	delay(2000);
 	reset_display();
 	delay(100);
 }
@@ -120,8 +116,8 @@ void loop()
 		delay(200);
 		START = digitalRead(START_PIN);
 		reset_display();
-		display.println("READY");
-		display.println(String(thermocouple.readCelsius(), 2) + " C");
+		display.println("PRESS START");
+		display.println(String(thermocouple.readCelsius(), 2) + String(char(247)) + "C");
 		display.display();
 	}
 }
@@ -147,7 +143,7 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
-		display.println(String(T, 2) + " C");
+		display.println(String(T, 2)+ String(char(247)) + "C");
 		display.println("Ramp " + String(setpoint, 0));
 		display.display();
 	}
@@ -163,8 +159,8 @@ void PID_fn(void)
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
-		display.println(String(T, 2) + " C");
-		display.println("Hold " + String((millis() - start_time) / 1000.0, 1) + "s");
+		display.println(String(T, 2) + String(char(247)) + "C");
+		display.println("Holding " + String((millis() - start_time) / 1000, 1) + "s");
 		display.display();
 	}
 }
