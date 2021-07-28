@@ -116,7 +116,7 @@ void loop()
 		delay(200);
 		START = digitalRead(START_PIN);
 		reset_display();
-		display.println("PRESS START");
+		display.println("READY");
 		display.println(String(thermocouple.readCelsius(), 2) + String(char(247)) + "C");
 		display.display();
 	}
@@ -144,7 +144,7 @@ void PID_fn(void)
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
 		reset_display();
 		display.println(String(T, 2)+ String(char(247)) + "C");
-		display.println("Ramp " + String(setpoint, 0));
+		display.println("Ramp " + String(setpoint, 0) + String(char(247)) + "C");
 		display.display();
 	}
 
