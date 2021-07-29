@@ -3,7 +3,7 @@
 
 // libraries that likely need to be downloaded in library manager
 #include <PID_v1.h>
-#include <max6675.h>
+#include <SparkFunMAX31855k.h> // Using the max31855k driver
 //#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -12,12 +12,12 @@
 #include "src/Bitmap.h"
 #include "src/HeatingStep.h"
 
-#define SSR_PIN 9
-#define START_PIN 8
+#define SSR_PIN 10
+#define START_PIN 20
 
 uint8_t START = LOW;
 
-MAX6675 thermocouple(10, 16, 14); // (SCK pin, CS pin, SO pin)
+SparkFunMAX31855k probe(10);
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 // Ruiheng: I ripped this from our FastDAC code!
@@ -79,7 +79,7 @@ void setup()
 	pinMode(START_PIN, INPUT);
 	digitalWrite(SSR_PIN, LOW);
 
-	g_pidparam[0].Input = thermocouple.readCelsius();
+	g_pidparam[0].Input = probe.readTempC();
 	myPID.SetMode(AUTOMATIC);
 	myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
@@ -117,7 +117,7 @@ void loop()
 		START = digitalRead(START_PIN);
 		reset_display();
 		display.println("READY");
-		display.println(String(thermocouple.readCelsius(), 2) + String(char(247)) + "C");
+		display.println(String(probe.readTempC(), 2) + String(char(247)) + "C");
 		display.display();
 	}
 }
@@ -138,7 +138,7 @@ void PID_fn(void)
 	while (abs(setpoint - T) > 1.0)
 	{
 		delay(200);
-		T = thermocouple.readCelsius();
+		T = probe.readTempC();
 		g_pidparam[0].Input = T;
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
@@ -154,7 +154,7 @@ void PID_fn(void)
 	while ((millis() - start_time) / 1000.0 < ht)
 	{
 		delay(200);
-		T = thermocouple.readCelsius();
+		T = probe.readTempC();
 		g_pidparam[0].Input = T;
 		myPID.Compute();
 		analogWrite(SSR_PIN, g_pidparam[0].Output);
