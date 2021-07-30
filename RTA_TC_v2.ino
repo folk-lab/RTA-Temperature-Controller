@@ -3,7 +3,7 @@
 
 // libraries that likely need to be downloaded in library manager
 #include <PID_v1.h>
-#include <SparkFunMAX31855k.h> // Using the max31855k driver
+#include <SparkFunMAX31855k.h>
 //#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -16,8 +16,9 @@
 #define START_PIN 20
 
 uint8_t START = LOW;
+//const uint8_t NONE = 256;
 
-SparkFunMAX31855k probe(10);
+SparkFunMAX31855k probe(8);
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 // Ruiheng: I ripped this from our FastDAC code!
@@ -80,6 +81,7 @@ void setup()
 	digitalWrite(SSR_PIN, LOW);
 
 	g_pidparam[0].Input = probe.readTempC();
+ 	myPID.SetSampleTime(50);
 	myPID.SetMode(AUTOMATIC);
 	myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
@@ -113,7 +115,7 @@ void loop()
 		}		
 	}
 	else{
-		delay(200);
+		delay(100);
 		START = digitalRead(START_PIN);
 		reset_display();
 		display.println("READY");
@@ -129,7 +131,7 @@ void PID_fn(void)
 	double ki = heating_schedule.peek().integral;
 	double kd = heating_schedule.peek().derivative;
 	double ht = heating_schedule.peek().hold_time;
-	double T = thermocouple.readCelsius();
+	double T = probe.readTempC();
 
 	set_pid_tune(kp, ki, kd);
 	g_pidparam[0].Setpoint = setpoint;
@@ -137,7 +139,7 @@ void PID_fn(void)
 	// ramping sequence
 	while (abs(setpoint - T) > 1.0)
 	{
-		delay(200);
+		delay(100);
 		T = probe.readTempC();
 		g_pidparam[0].Input = T;
 		myPID.Compute();
@@ -153,7 +155,7 @@ void PID_fn(void)
 	// holding
 	while ((millis() - start_time) / 1000.0 < ht)
 	{
-		delay(200);
+		delay(100);
 		T = probe.readTempC();
 		g_pidparam[0].Input = T;
 		myPID.Compute();
