@@ -3,7 +3,7 @@
 
 // libraries that likely need to be downloaded in library manager
 #include <PID_v1.h>
-#include <SparkFunMAX31855k.h> // Using the max31855k driver
+#include <SparkFunMAX31855k.h>
 //#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -12,12 +12,13 @@
 #include "src/Bitmap.h"
 #include "src/HeatingStep.h"
 
-#define SSR_PIN 10
+#define SSR_PIN 5
 #define START_PIN 20
 
 uint8_t START = LOW;
+//const uint8_t NONE = 256;
 
-SparkFunMAX31855k probe(10);
+SparkFunMAX31855k probe(8);
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 // Ruiheng: I ripped this from our FastDAC code!
@@ -47,10 +48,11 @@ PID myPID(&(g_pidparam[0].Input),
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step0(330, 4.7, 0.9, 0.0, 1);
+HeatingStep step0(320, 0.0, 1, 0.0, 1);
 HeatingStep step1(330, 4.00, 1.2, 0.0, 120); // Set knob to 60% full power
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
-HeatingStep step3(50, 0, 5.0, 0.0, 1);
+HeatingStep step2(435, 0, 1.0, 0.0, 1);
+HeatingStep step3(445, 3.8, 0.9, 0.0, 120);
+HeatingStep step4(50, 0, 5.0, 0.0, 1);
 /*
 Modify above
 */
@@ -66,10 +68,11 @@ void setup()
 	/*
 	Modify below 
 	*/
+	heating_schedule.push(step4);
 	heating_schedule.push(step3);
 	heating_schedule.push(step2);
 	heating_schedule.push(step1);
-	heating_schedule.push(step0);
+  heating_schedule.push(step0);
 	/*
 	Modify above
 	*/
@@ -80,6 +83,7 @@ void setup()
 	digitalWrite(SSR_PIN, LOW);
 
 	g_pidparam[0].Input = probe.readTempC();
+ 	myPID.SetSampleTime(50);
 	myPID.SetMode(AUTOMATIC);
 	myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
@@ -113,7 +117,7 @@ void loop()
 		}		
 	}
 	else{
-		delay(200);
+		delay(100);
 		START = digitalRead(START_PIN);
 		reset_display();
 		display.println("READY");
@@ -129,15 +133,15 @@ void PID_fn(void)
 	double ki = heating_schedule.peek().integral;
 	double kd = heating_schedule.peek().derivative;
 	double ht = heating_schedule.peek().hold_time;
-	double T = thermocouple.readCelsius();
+	double T = probe.readTempC();
 
 	set_pid_tune(kp, ki, kd);
 	g_pidparam[0].Setpoint = setpoint;
 
 	// ramping sequence
-	while (abs(setpoint - T) > 1.0)
+	while (abs(setpoint - T) > 1.0 && abs(setpoint - T) < 10.0)
 	{
-		delay(200);
+		delay(100);
 		T = probe.readTempC();
 		g_pidparam[0].Input = T;
 		myPID.Compute();
@@ -153,7 +157,7 @@ void PID_fn(void)
 	// holding
 	while ((millis() - start_time) / 1000.0 < ht)
 	{
-		delay(200);
+		delay(100);
 		T = probe.readTempC();
 		g_pidparam[0].Input = T;
 		myPID.Compute();
