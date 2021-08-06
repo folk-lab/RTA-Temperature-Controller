@@ -36,21 +36,21 @@ typedef struct PIDparam
 PIDparam g_pidparam[1];
 
 PID myPID(&(g_pidparam[0].Input),
-      &(g_pidparam[0].Output),
-      &(g_pidparam[0].Setpoint),
-      g_pidparam[0].kp,
-      g_pidparam[0].ki,
-      g_pidparam[0].kd,
-      P_ON_M,
-      DIRECT);
+          &(g_pidparam[0].Output),
+          &(g_pidparam[0].Setpoint),
+          g_pidparam[0].kp,
+          g_pidparam[0].ki,
+          g_pidparam[0].kd,
+          P_ON_M,
+          DIRECT);
 
 /*
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step0(330, 4.00, 1.2, 0.0, 120); // Set knob to 60% full power
-HeatingStep step1(445, 3.8, 0.9, 0.0, 120);
-HeatingStep step2(50, 0, 5.0, 0.0, 1);
+HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 5.0); // Set knob to 60% full power
+HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 3.0);
+HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 /*
 Modify above
 */
@@ -63,6 +63,7 @@ void set_pid_tune(double, double, double);
 
 void setup()
 {
+  Serial.begin(9600);
   /*
   Modify below 
   */
@@ -98,7 +99,8 @@ void setup()
 
 void loop()
 {
-  if (START == HIGH){
+  if (START == HIGH)
+  {
     if (!heating_schedule.isEmpty())
     {
       PID_fn();
@@ -108,16 +110,21 @@ void loop()
     else
     {
       reset_display();
+      analogWrite(SSR_PIN, 0);
       display.println("COMPLETE");
       display.display();
-    }   
+    }
   }
-  else{
+  else
+  {
     delay(110);
     START = digitalRead(START_PIN);
     reset_display();
     display.println("READY");
-    display.println(String(probe.readTempC(), 2) + String(char(247)) + "C");
+
+    double T = probe.readTempC();
+    Serial.println(T);
+    display.println(String(T, 2) + String(char(247)) + "C");
     display.display();
   }
 }
@@ -129,44 +136,55 @@ void PID_fn(void)
   double ki = heating_schedule.peek().integral;
   double kd = heating_schedule.peek().derivative;
   double ht = heating_schedule.peek().hold_time;
+  // temperature difference in ramp 
+  double delta_t = heating_schedule.peek().delta_t;
+  
+  // read the temperature
   double T = probe.readTempC();
-
+  
+  // set the PID parameter
   set_pid_tune(kp, ki, kd);
   g_pidparam[0].Setpoint = setpoint;
 
-  while ((setpoint - T) >= 4.0)
-    {
-      delay(110);
-      T = probe.readTempC();
-      analogWrite(SSR_PIN, 255);
-      reset_display();
-      display.println(String(T, 2)+ String(char(247)) + "C");
-      display.println("Ramp to:");
-      display.println(String(setpoint, 0) + String(char(247)) + "C");
-      display.display();
-    }
-
-  while ((setpoint - T) <= -5.0)
-    {
-      delay(110);
-      T = probe.readTempC();
-      analogWrite(SSR_PIN, 0);
-      reset_display();
-      display.println(String(T, 2)+ String(char(247)) + "C");
-      display.println("Cool to:");
-      display.println(String(setpoint, 0) + String(char(247)) + "C");
-      display.display();
-    }
-
-  while (abs(setpoint - T) > 1.0 && abs(setpoint - T) < 4.0)
+  // if the setpoint is delta_t higher, then we close the relay fully 
+  while ((setpoint - T) >= delta_t)
   {
     delay(110);
     T = probe.readTempC();
+    Serial.println(T);
+    analogWrite(SSR_PIN, 255);
+    reset_display();
+    display.println(String(T, 2) + String(char(247)) + "C");
+    display.println("Ramp to:");
+    display.println(String(setpoint, 0) + String(char(247)) + "C");
+    display.display();
+  }
+  
+  // if the overshoot is more than delta_t then we leave the relay open 
+  while ((T - setpoint) >= delta_t)
+  {
+    delay(110);
+    T = probe.readTempC();
+    Serial.println(T);
+    analogWrite(SSR_PIN, 0);
+    reset_display();
+    display.println(String(T, 2) + String(char(247)) + "C");
+    display.println("Cool to:");
+    display.println(String(setpoint, 0) + String(char(247)) + "C");
+    display.display();
+  }
+  
+  // the temperature is within delta_t of the setpoint, but more than 1 C away from it 
+  while (abs(setpoint - T) > 1.0)
+  {
+    delay(110);
+    T = probe.readTempC();
+    Serial.println(T);
     g_pidparam[0].Input = T;
     myPID.Compute();
     analogWrite(SSR_PIN, g_pidparam[0].Output);
     reset_display();
-    display.println(String(T, 2)+ String(char(247)) + "C");
+    display.println(String(T, 2) + String(char(247)) + "C");
     display.println("Ramp to:");
     display.println(String(setpoint, 0) + String(char(247)) + "C");
     display.display();
@@ -179,13 +197,14 @@ void PID_fn(void)
   {
     delay(110);
     T = probe.readTempC();
+    Serial.println(T);
     g_pidparam[0].Input = T;
     myPID.Compute();
     analogWrite(SSR_PIN, g_pidparam[0].Output);
     reset_display();
     display.println(String(T, 2) + String(char(247)) + "C");
-    display.println("Holding");   
-    display.print((millis() - start_time)/1000);
+    display.println("Holding");
+    display.print((millis() - start_time) / 1000);
     display.println("s");
     display.display();
   }
