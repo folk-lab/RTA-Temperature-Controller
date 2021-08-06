@@ -134,7 +134,30 @@ void PID_fn(void)
   set_pid_tune(kp, ki, kd);
   g_pidparam[0].Setpoint = setpoint;
 
-  // ramping sequence
+  while ((setpoint - T) >= 4.0)
+    {
+      delay(110);
+      T = probe.readTempC();
+      analogWrite(SSR_PIN, 255);
+      reset_display();
+      display.println(String(T, 2)+ String(char(247)) + "C");
+      display.println("Ramp to:");
+      display.println(String(setpoint, 0) + String(char(247)) + "C");
+      display.display();
+    }
+
+  while ((setpoint - T) <= -5.0)
+    {
+      delay(110);
+      T = probe.readTempC();
+      analogWrite(SSR_PIN, 0);
+      reset_display();
+      display.println(String(T, 2)+ String(char(247)) + "C");
+      display.println("Cool to:");
+      display.println(String(setpoint, 0) + String(char(247)) + "C");
+      display.display();
+    }
+
   while (abs(setpoint - T) > 1.0 && abs(setpoint - T) < 4.0)
   {
     delay(110);
@@ -148,31 +171,6 @@ void PID_fn(void)
     display.println(String(setpoint, 0) + String(char(247)) + "C");
     display.display();
   }
-
-
-  while ((setpoint - T) > 4.0)
-    {
-      delay(110);
-      T = probe.readTempC();
-      analogWrite(SSR_PIN, 255);
-      reset_display();
-      display.println(String(T, 2)+ String(char(247)) + "C");
-      display.println("Ramp to:");
-      display.println(String(setpoint, 0) + String(char(247)) + "C");
-      display.display();
-    }
-
-  while ((setpoint - T) < -5.0)
-    {
-      delay(110);
-      T = probe.readTempC();
-      analogWrite(SSR_PIN, 0);
-      reset_display();
-      display.println(String(T, 2)+ String(char(247)) + "C");
-      display.println("Cool to:");
-      display.println(String(setpoint, 0) + String(char(247)) + "C");
-      display.display();
-    }
 
   unsigned long start_time = millis(); // in ms
 
