@@ -18,7 +18,7 @@ There are two modes of operation.
 ### Up Toggle Position - Manual
 Allows the user to operate the temperature controller as before.  Simply use the variable transfomer to adjust the output.
 
-### Down Toggle Position - PID Control
+### Down Toggle Position - PID
 Automates an annealing sequence. 
 
 ## Programming 
@@ -28,12 +28,13 @@ The steps in an annealing schedule is specified by creating `HeatingStep` object
 2. The P coefficient in the PID algorithm 
 3. The I coefficient 
 4. The D coefficient 
-5. The number of seconds to hold at the setpoint after ramping 
+5. The number of seconds to hold at the setpoint after ramping
+6. Max difference in temperature (from setpoint to current T) before starting PID computation.
 
 For example,
 ```cpp
-// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, and hold for 120 seconds
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
+// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, hold for 120 seconds and begin PID when within 3.0 degrees Celcius of setpoint
+HeatingStep step2(445, 3.8, 0.9, 0.0, 120, 3.0);
 ```
 
 For every `HeatingStep` object in the `StackArray`, we first 
@@ -60,9 +61,9 @@ This would be specifed by the following section in the RTA code:
 Modify below 
 */
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step1(330, 4.7, 0.9, 0.0, 120); // Set knob to 60% full power
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
-HeatingStep step3(50, 0, 5.0, 0.0, 1);
+HeatingStep step1(330, 4.7, 0.9, 0.0, 120, 5.0); // Set knob to 60% full power
+HeatingStep step2(445, 3.8, 0.9, 0.0, 120, 3.0);
+HeatingStep step3(50, 0, 5.0, 0.0, 1, 0);
 /*
 Modify above
 */
