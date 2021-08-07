@@ -107,12 +107,11 @@ void loop()
       // after ramping, holding
       heating_schedule.pop(); // pop the last entry from the stack
     }
-    else
-    {
-      reset_display();
+    else{
+      delay(1000);
       analogWrite(SSR_PIN, 0);
-      display.println("COMPLETE");
-      display.display();
+      delay(1000);
+      START = LOW;
     }
   }
   else
