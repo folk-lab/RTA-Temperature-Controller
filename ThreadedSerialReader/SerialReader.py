@@ -1,3 +1,10 @@
+"""
+Ruiheng Su 
+August 9 2021
+
+UBC QDev
+"""
+
 import time
 import serial
 import numpy as np
