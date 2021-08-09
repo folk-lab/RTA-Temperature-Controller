@@ -113,5 +113,5 @@ if __name__ == "__main__":
         yaxis_title="Temperature (C)",
     )
     s = SerialReaderPlotter("COM8", baudrate=9600)
-    s.start_reading(1)
+    s.start_reading(10)
     s.start_writing(fig)
