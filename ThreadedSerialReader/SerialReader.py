@@ -49,20 +49,17 @@ def plotting(q, fig, timeout):
 
     start = time.time()
     scatter = fig.data[0]
-    t_out = timeout
     # run while the queue is not empty or timeout has not expired
-    while t_out > 0:
-        if not q.empty():
-            output = q.get()
+    while True:
+        try:
+            output = q.get(timeout = timeout)
+        except:
+            break
+        else: 
             since = time.time() - start
             with fig.batch_update():
                 scatter.x += tuple([since, ])
                 scatter.y += tuple([float(output), ]) 
-            t_out = timeout 
-        else: 
-            time.sleep(0.050)
-            t_out -= 0.050
-            logging.debug('Waiting for Data')
     logging.debug('Exiting')
     
 
