@@ -49,18 +49,17 @@ def plotting(q, fig, timeout):
 
     start = time.time()
     scatter = fig.data[0]
-
+    # run while the queue is not empty or timeout has not expired
     while True:
         try:
             output = q.get(timeout = timeout)
         except:
             break
-        else:
+        else: 
             since = time.time() - start
             with fig.batch_update():
                 scatter.x += tuple([since, ])
                 scatter.y += tuple([float(output), ]) 
-
     logging.debug('Exiting')
     
 class SerialReader():
@@ -112,5 +111,5 @@ if __name__ == "__main__":
         yaxis_title="Temperature (C)",
     )
     s = SerialReaderPlotter("COM8", baudrate=9600)
-    s.start_reading(1)
+    s.start_reading(10)
     s.start_writing(fig)
