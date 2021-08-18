@@ -13,41 +13,53 @@ import queue
 import serial
 
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.WARNING,
                     format='(%(threadName)-9s) %(message)s',)
 
 
 def receiving(ser, q, s_to_read):
-    logging.debug('Starting')
+    logging.warning('Starting')
+    
+    if not ser.is_open:
+        ser.open()
+            
+    # roughly 9 hz 
+    frequency = 1/0.110
 
-    start = time.time()
-    while (time.time() - start) < s_to_read:
+    numpts = np.round(s_to_read*frequency)
+    logging.warning('Reading {}'.format(numpts))
+    read = 0
+    while read < numpts:
         # Read output from ser
         data = ser.readline()
         output = data.decode('ascii').rstrip('\r\n')
         # Add output to queue
-        q.put(output)
-
-    logging.debug('Exiting')
+        q.put((read*0.110, output))
+        read += 1 
+    ser.close()
+    logging.warning('Exiting')
 
 
 def writing(q, filename):
-    logging.debug('Starting')
-
+    logging.warning('Starting')
+    
     while True:
         output = q.get()
         with open(filename, "a+") as f:
             f.write(output)
             f.write(",")
 
-    logging.debug('Exiting')
+    logging.warning('Exiting')
 
 
 def plotting(q, fig, timeout):
-    logging.debug('Starting')
+    logging.warning('Starting')
 
-    start = time.time()
-    scatter = fig.data[0]
+    fig.add_scatter(x=[], 
+                    y=[], 
+                    line=dict(width=0.5))
+    
+    scatter = fig.data[-1]
     # run while the queue is not empty or timeout has not expired
     while True:
         try:
@@ -55,22 +67,22 @@ def plotting(q, fig, timeout):
         except:
             break
         else: 
-            since = time.time() - start
             with fig.batch_update():
-                scatter.x += tuple([since, ])
-                scatter.y += tuple([float(output), ]) 
-    logging.debug('Exiting')
+                scatter.x += tuple([float(output[0]), ])
+                scatter.y += tuple([float(output[1]), ]) 
+    logging.warning('Exiting')
     
 class SerialReader():
 
     def __init__(self, port, **kwargs):
         try:
             self.serial_port = serial.Serial(port, **kwargs)
-    
-        except serial.serialutil.SerialException:
-            # no serial connection
-            self.serial_port = None
-
+        except Exception as e:
+            try:
+                self.serial_port.close()
+            except:
+                raise 
+        self.serial_port.close()
         self.q = queue.Queue()
 
     def start_reading(self, s_to_read: float):
