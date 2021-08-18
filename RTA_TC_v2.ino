@@ -47,10 +47,19 @@ PID myPID(&(g_pidparam[0].Input),
 /*
 Modify below 
 */
-// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 5.0); // Set knob to 60% full power
+// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At            // Set knob to 60% full power
+
+// Ebrahim's Sequence
+//HeatingStep step0(300, 4.00, 1.2, 0.0, 3600, 6.0);
+//HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
+
+
+// Ray's Sequence
+HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 5.0);
 HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 3.0);
 HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
+
+
 /*
 Modify above
 */
