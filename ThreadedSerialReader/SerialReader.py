@@ -4,7 +4,6 @@ August 9 2021
 
 UBC QDev
 """
-
 import time
 import serial
 import numpy as np
@@ -62,13 +61,12 @@ def plotting(q, fig, timeout):
                 scatter.y += tuple([float(output), ]) 
     logging.debug('Exiting')
     
-
-
 class SerialReader():
 
     def __init__(self, port, **kwargs):
         try:
             self.serial_port = serial.Serial(port, **kwargs)
+    
         except serial.serialutil.SerialException:
             # no serial connection
             self.serial_port = None
