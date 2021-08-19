@@ -57,7 +57,7 @@ def plotting(q, fig, timeout):
 
     fig.add_scatter(x=[], 
                     y=[], 
-                    line=dict(width=0.5))
+                    line=dict(width=1))
     
     scatter = fig.data[-1]
     # run while the queue is not empty or timeout has not expired
