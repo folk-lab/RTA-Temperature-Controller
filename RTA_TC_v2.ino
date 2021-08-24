@@ -66,8 +66,8 @@ Modify below
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Ray's Sequence
-HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 5.0);
-HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 3.0);
+HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 10.0); // changed delta_t from 5 to 10
+HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); // changed delta_t from 3 to 5
 HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
 /*
@@ -166,12 +166,12 @@ void loop()
         }
         else
         {
-            cli();
+            cli(); // clear interrupt flag. This prevents any interrupts from occuring 
             delay(1000);
             analogWrite(SSR_PIN, 0);
             delay(1000);
             START = LOW;
-            sei();
+            sei(); // restart interrupts
         }
     }
     else
@@ -184,9 +184,9 @@ void loop()
         display.display();
         if (START == HIGH)
         {
-            cli();
+            cli(); // clear interrupt flag. This prevents any interrupts from occuring 
             START_TIME = millis();
-            sei();
+            sei(); // restart interrupts
         }
     }
 }

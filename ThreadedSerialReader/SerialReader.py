@@ -4,10 +4,9 @@ August 9 2021
 
 UBC QDev
 """
-import time
 import serial
 import numpy as np
-from threading import Thread, Timer
+from threading import Thread
 
 import queue
 import serial
@@ -27,15 +26,17 @@ def receiving(ser, q, s_to_read):
         # Read output from ser
         data = ser.readline()
         output = data.decode('ascii').rstrip('\r\n')
-        t_s, temp = output.split(",")
-        t_s = float(t_s)
-        # Add output to queue
-        q.put((t_s, float(temp)))
-        
-        if t_s/1000.0 > s_to_read:
-            break
-        
-    ser.close()
+        try:
+            t_s, temp = output.split(",")
+            t_s = float(t_s)
+            # Add output to queue
+            q.put((t_s, float(temp)))
+            
+            if t_s/1000.0 > s_to_read:
+                break
+        except: 
+            ser.close()
+            break 
     logging.warning('Exiting')
 
 

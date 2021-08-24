@@ -15,7 +15,7 @@ struct HeatingStep
     double integral;
     double derivative;
     double hold_time; // hold time in seconds
-    double delta_t;
+    double delta_t; // 
 };
 
 #endif
