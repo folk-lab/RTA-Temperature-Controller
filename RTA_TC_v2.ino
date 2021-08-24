@@ -66,7 +66,7 @@ Modify below
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Ray's Sequence
-HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 10.0); // changed delta_t from 5 to 10
+HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 6.0); // changed delta_t
 HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); // changed delta_t from 3 to 5
 HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
