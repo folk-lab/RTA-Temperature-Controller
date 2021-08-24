@@ -22,20 +22,19 @@ def receiving(ser, q, s_to_read):
     
     if not ser.is_open:
         ser.open()
-            
-    # roughly 9 hz 
-    frequency = 1/0.110
 
-    numpts = np.round(s_to_read*frequency)
-    logging.warning('Reading {}'.format(numpts))
-    read = 0
-    while read < numpts:
+    while True:
         # Read output from ser
         data = ser.readline()
         output = data.decode('ascii').rstrip('\r\n')
+        t_s, temp = output.split(",")
+        t_s = float(t_s)
         # Add output to queue
-        q.put((read*0.110, output))
-        read += 1 
+        q.put((t_s, float(temp)))
+        
+        if t_s/1000.0 > s_to_read:
+            break
+        
     ser.close()
     logging.warning('Exiting')
 
@@ -68,8 +67,8 @@ def plotting(q, fig, timeout):
             break
         else: 
             with fig.batch_update():
-                scatter.x += tuple([float(output[0]), ])
-                scatter.y += tuple([float(output[1]), ]) 
+                scatter.x += tuple([output[0]/1000, ])
+                scatter.y += tuple([output[1], ]) 
     logging.warning('Exiting')
     
 class SerialReader():
@@ -112,7 +111,7 @@ class SerialReaderPlotter(SerialReader):
 
     def start_writing(self, figure):
         self.writer = Thread(name='Plotter',target=plotting, args=(
-            self.q, figure, 1))
+            self.q, figure, 10))
         self.writer.start()
 
 if __name__ == "__main__":
@@ -122,6 +121,6 @@ if __name__ == "__main__":
         xaxis_title="Time",
         yaxis_title="Temperature (C)",
     )
-    s = SerialReaderPlotter("COM8", baudrate=9600)
+    s = SerialReaderPlotter("COM8", baudrate=19200)
     s.start_reading(10)
     s.start_writing(fig)
