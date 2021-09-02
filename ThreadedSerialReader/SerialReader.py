@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.WARNING,
 
 def receiving(ser, q, s_to_read):
     logging.warning('Starting')
-    
+
     if not ser.is_open:
         ser.open()
 
@@ -31,18 +31,18 @@ def receiving(ser, q, s_to_read):
             t_s = float(t_s)
             # Add output to queue
             q.put((t_s, float(temp)))
-            
+
             if t_s/1000.0 > s_to_read:
                 break
-        except: 
+        except:
             ser.close()
-            break 
+            break
     logging.warning('Exiting')
 
 
 def writing(q, filename):
     logging.warning('Starting')
-    
+
     while True:
         output = q.get()
         with open(filename, "a+") as f:
@@ -55,23 +55,24 @@ def writing(q, filename):
 def plotting(q, fig, timeout):
     logging.warning('Starting')
 
-    fig.add_scatter(x=[], 
-                    y=[], 
+    fig.add_scatter(x=[],
+                    y=[],
                     line=dict(width=1))
-    
+
     scatter = fig.data[-1]
     # run while the queue is not empty or timeout has not expired
     while True:
         try:
-            output = q.get(timeout = timeout)
+            output = q.get(timeout=timeout)
         except:
             break
-        else: 
+        else:
             with fig.batch_update():
                 scatter.x += tuple([output[0]/1000, ])
-                scatter.y += tuple([output[1], ]) 
+                scatter.y += tuple([output[1], ])
     logging.warning('Exiting')
-    
+
+
 class SerialReader():
 
     def __init__(self, port, **kwargs):
@@ -81,7 +82,7 @@ class SerialReader():
             try:
                 self.serial_port.close()
             except:
-                raise 
+                raise
         self.serial_port.close()
         self.q = queue.Queue()
 
@@ -89,11 +90,23 @@ class SerialReader():
         self.reader = Thread(name='Reader', target=receiving, args=(
             self.serial_port, self.q, s_to_read), daemon=True)
         self.reader.start()
-
-    def read_complete(self,):
-        print("DONE")
-
-
+    
+    def read_1_sample(self) -> tuple:
+        if not self.serial_port.is_open:
+            self.serial_port.open()
+        
+        data = self.serial_port.readline()
+        output = data.decode('ascii').rstrip('\r\n')
+        try:
+            t_s, temp = output.split(",")
+            t_s = float(t_s)
+            self.serial_port.close()
+            # Add output to queue
+            return (t_s, float(temp))
+        except:
+            self.serial_port.close()
+            return None 
+        
 class SerialReaderWriter(SerialReader):
 
     def __init__(self, port, **kwargs):
@@ -111,9 +124,10 @@ class SerialReaderPlotter(SerialReader):
         super().__init__(port, **kwargs)
 
     def start_writing(self, figure):
-        self.writer = Thread(name='Plotter',target=plotting, args=(
+        self.writer = Thread(name='Plotter', target=plotting, args=(
             self.q, figure, 10))
         self.writer.start()
+
 
 if __name__ == "__main__":
     import plotly.graph_objs as go
