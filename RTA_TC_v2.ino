@@ -184,7 +184,7 @@ void loop()
         START = digitalRead(START_PIN);
         reset_display();
         display.println("READY");
-        display.println(String(T, 2) + String(char(247)) + "C");
+        display.println(String(T, 2) + String(char(247)) + "C");        
         display.display();
         if (START == HIGH)
         {
