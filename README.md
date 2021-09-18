@@ -1,6 +1,6 @@
 # RTA-Temperature-Controller
 
-Technical specifics, code, schematics and operating instructions for the RTA temperature controller.  Currently setup to be used with a Osram FNT 64656 HLX 275W 24V tungsten halogen lamp.  
+Technical specifics, code, schematics and operating instructions for the RTA temperature controller.  Currently, setup to be used with a Osram FNT 64656 HLX 275W 24V tungsten halogen lamp.  
 
 ## Components
 
@@ -16,7 +16,7 @@ Technical specifics, code, schematics and operating instructions for the RTA tem
 There are two modes of operation. 
 
 ### Up Toggle Position - Manual
-Allows the user to operate the temperature controller as before.  Simply use the variable transfomer to adjust the output.
+Allows the user to operate the temperature controller as before.  Simply use the variable transformer to adjust the output.
 
 ### Down Toggle Position - PID Control
 Automates an annealing sequence. 
@@ -24,12 +24,12 @@ Automates an annealing sequence.
 ## Programming 
 
 The steps in an annealing schedule is specified by creating `HeatingStep` objects, and pushing them to a `StackArray`. A `HeatingStep` object is specified by supplying the following parameters
-1. Setpoint temperature in degress celius 
+1. Setpoint temperature in degrees Celsius 
 2. The P coefficient in the PID algorithm 
 3. The I coefficient 
 4. The D coefficient 
 5. The number of seconds to hold at the setpoint after ramping 
-6. `delta_t` - in a ramp up step, as long the setpoint is at least `delta_t` higher than the measured temperature, the relay remains fully closed 
+6. `delta_t` (in degrees Celsius) - in a ramp up step, as long the setpoint is at least `delta_t` higher than the measured temperature, the relay remains fully closed 
 
 > **Tip:** specifying small `delta_t` increases the speed of the ramp up 
 
@@ -50,11 +50,11 @@ When we are done with a `HeatingStep`, we `pop` the `HeatingStep` from the `Stac
 
 ### Example 
 Let's consider the following annealing schedule, starting at room temperature:
-1. 330 degress celcius, 2 minutes 
-2. 445 degrees celcius, 2 minutes
-3. Cool down to 50 degress celcius, at which point we can remove the sample 
+1. 330 degrees Celsius, 2 minutes 
+2. 445 degrees Celsius, 2 minutes
+3. Cool down to 50 degrees Celsius, at which point we can remove the sample 
 
-This would be specifed by the following section in the RTA code:
+This would be specified by the following section in the RTA code:
 ```cpp 
 //...
 
