@@ -19,7 +19,7 @@ There are two modes of operation.
 Allows the user to operate the temperature controller as before.  Simply use the variable transformer to adjust the output.
 
 ### Down Toggle Position - PID Control
-Automates an annealing sequence. 
+Automates an annealing sequence by using the Arduino control the relay switching.
 
 ## Programming 
 
@@ -91,4 +91,25 @@ void setup()
     //...
 }
 //...
+```
+
+### Pseudo Code
+Every annealing step essentially consists of the following 4 `while` loops.
+
+```python
+def annealing_step: 
+	while "(target temperature - measured temperature) is >= delta_t"
+		"Fully OPEN the relay" 
+
+	while "(target temperature - measured temperature) is <= delta_t"
+		"Fully CLOSE the relay"
+
+	while "measured temperature is within 1 C of the target temperature"
+		"Start the PID algorithm to control the relay switching"
+
+	# at this point, should already be super close to the target temperature
+
+	while "held time is less than the required holding time"
+		"Use the PID algorithm to hold at the target temperature"
+return
 ```
