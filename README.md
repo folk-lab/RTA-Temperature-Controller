@@ -97,7 +97,7 @@ void setup()
 Every annealing step essentially consists of the following 4 `while` loops.
 
 ```python
-def annealing_step: 
+annealing_step: 
 	while "(target temperature - measured temperature) is >= delta_t"
 		"Fully OPEN the relay" 
 
@@ -111,5 +111,5 @@ def annealing_step:
 
 	while "held time is less than the required holding time"
 		"Use the PID algorithm to hold at the target temperature"
-return
+complete
 ```
