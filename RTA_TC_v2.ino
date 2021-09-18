@@ -58,9 +58,10 @@ unsigned long START_TIME;
 /*
 Modify below 
 */
-// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-// Set knob to 60% full power
 
+// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At, delta_t
+
+// Set knob to 60% full power
 // Ebrahim's Sequence
 //HeatingStep step0(300, 4.00, 1.2, 0.0, 3600, 6.0);
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
@@ -71,6 +72,7 @@ Modify below
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
 // 300 C 5 mbar anneal for 10 minutes
+// Set knob to 35% full power 
 HeatingStep step0(300, 4.00, 1.0, 0.0, 600, 1.0); 
 HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
@@ -209,7 +211,7 @@ void PID_fn(void)
     set_pid_tune(kp, ki, kd);
     g_pidparam[0].Setpoint = setpoint;
 
-    // if the setpoint is delta_t higher, then we close the relay fully
+    // if the setpoint is delta_t higher, then we fully close the relay
     while ((setpoint - T) >= delta_t)
     {
         delay(110);
@@ -221,7 +223,7 @@ void PID_fn(void)
         display.display();
     }
 
-    // if the overshoot is more than delta_t then we leave the relay open
+    // if the overshoot is more than delta_t, then we fully open the relay
     while ((T - setpoint) >= delta_t)
     {
         delay(110);

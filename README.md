@@ -29,11 +29,14 @@ The steps in an annealing schedule is specified by creating `HeatingStep` object
 3. The I coefficient 
 4. The D coefficient 
 5. The number of seconds to hold at the setpoint after ramping 
+6. `delta_t` - in a ramp up step, as long the setpoint is at least `delta_t` higher than the measured temperature, the relay remains fully closed 
 
-For example,
+> **Tip:** specifying small `delta_t` increases the speed of the ramp up 
+
+For example: 
 ```cpp
-// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, and hold for 120 seconds
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
+// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, hold for 120 seconds, with a delta_t of 5 degrees celcius
+HeatingStep step2(445, 3.8, 0.9, 0.0, 120, 5.0);
 ```
 
 For every `HeatingStep` object in the `StackArray`, we first 
@@ -54,19 +57,18 @@ Let's consider the following annealing schedule, starting at room temperature:
 This would be specifed by the following section in the RTA code:
 ```cpp 
 //...
-//...
 
 /*
 Modify below 
 */
-// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step1(330, 4.7, 0.9, 0.0, 120); // Set knob to 60% full power
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120);
-HeatingStep step3(50, 0, 5.0, 0.0, 1);
+// Temperature (in degrees), kP, kI, kD, seconds to hold temperature at, delta_t 
+HeatingStep step0(360, 4.00, 1.2, 0.0, 120, 6.0); // Set knob to 60% full power
+HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); 
+HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
+
 /*
 Modify above
 */
-
 StackArray<HeatingStep> heating_schedule;
 
 void PID_fn(void);
@@ -87,8 +89,6 @@ void setup()
 	Modify above
 	*/
     //...
-    //...
 }
-//...
 //...
 ```
