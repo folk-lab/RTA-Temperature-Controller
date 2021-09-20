@@ -25,7 +25,7 @@ Automates an annealing sequence by using the Arduino control the relay switching
 
 The steps in an annealing schedule is specified by creating `HeatingStep` objects, and pushing them to a `StackArray`. A `HeatingStep` object is specified by supplying the following parameters
 1. Setpoint temperature in degrees Celsius 
-2. The P coefficient in the PID algorithm 
+2. The P coefficient - note that we used **[proportional on measurement](http://brettbeauregard.com/blog/2017/06/introducing-proportional-on-measurement/)**
 3. The I coefficient 
 4. The D coefficient 
 5. The number of seconds to hold at the setpoint after ramping 
