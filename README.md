@@ -1,6 +1,6 @@
 # RTA-Temperature-Controller
 
-Technical specifics, code, schematics and operating instructions for the RTA temperature controller.  Currently setup to be used with a Osram FNT 64656 HLX 275W 24V tungsten halogen lamp.  
+Technical specifics, code, schematics and operating instructions for the RTA temperature controller.  Currently, setup to be used with a Osram FNT 64656 HLX 275W 24V tungsten halogen lamp.  
 
 ## Components
 
@@ -16,25 +16,28 @@ Technical specifics, code, schematics and operating instructions for the RTA tem
 There are two modes of operation. 
 
 ### Up Toggle Position - Manual
-Allows the user to operate the temperature controller as before.  Simply use the variable transfomer to adjust the output.
+Allows the user to operate the temperature controller as before.  Simply use the variable transformer to adjust the output.
 
-### Down Toggle Position - PID
-Automates an annealing sequence. 
+### Down Toggle Position - PID Control
+Automates an annealing sequence by using the Arduino control the relay switching.
 
 ## Programming 
 
 The steps in an annealing schedule is specified by creating `HeatingStep` objects, and pushing them to a `StackArray`. A `HeatingStep` object is specified by supplying the following parameters
-1. Setpoint temperature in degress celius 
-2. The P coefficient in the PID algorithm 
+1. Setpoint temperature in degrees Celsius 
+2. The P coefficient - note that we used **[proportional on measurement](http://brettbeauregard.com/blog/2017/06/introducing-proportional-on-measurement/)**
 3. The I coefficient 
 4. The D coefficient 
-5. The number of seconds to hold at the setpoint after ramping
-6. Max difference in temperature (from setpoint to current T) before starting PID computation.
+5. The number of seconds to hold at the setpoint after ramping 
+6. `delta_t` (in degrees Celsius) - in a ramp up step, as long the setpoint is at least `delta_t` higher than the measured temperature, the relay remains fully closed 
 
-For example,
+
+> **Tip:** specifying small `delta_t` increases the speed of the ramp up 
+
+For example: 
 ```cpp
-// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, hold for 120 seconds and begin PID when within 3.0 degrees Celcius of setpoint
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120, 3.0);
+// heat to 445, using kp = 3.8, ki = 0.9, kd = 0, hold for 120 seconds, with a delta_t of 5 degrees celcius
+HeatingStep step2(445, 3.8, 0.9, 0.0, 120, 5.0);
 ```
 
 For every `HeatingStep` object in the `StackArray`, we first 
@@ -48,26 +51,24 @@ When we are done with a `HeatingStep`, we `pop` the `HeatingStep` from the `Stac
 
 ### Example 
 Let's consider the following annealing schedule, starting at room temperature:
-1. 330 degress celcius, 2 minutes 
-2. 445 degrees celcius, 2 minutes
-3. Cool down to 50 degress celcius, at which point we can remove the sample 
+1. 330 degrees Celsius, 2 minutes 
+2. 445 degrees Celsius, 2 minutes
+3. Cool down to 50 degrees Celsius, at which point we can remove the sample 
 
-This would be specifed by the following section in the RTA code:
+This would be specified by the following section in the RTA code:
 ```cpp 
-//...
 //...
 
 /*
 Modify below 
 */
-// Temperature [C], kP, kI, kD, Seconds to Hold Temperature At
-HeatingStep step1(330, 4.7, 0.9, 0.0, 120, 5.0); // Set knob to 60% full power
-HeatingStep step2(445, 3.8, 0.9, 0.0, 120, 3.0);
-HeatingStep step3(50, 0, 5.0, 0.0, 1, 0);
+// Temperature (in degrees), kP, kI, kD, seconds to hold temperature at, delta_t 
+HeatingStep step0(360, 4.00, 1.2, 0.0, 120, 6.0); // Set knob to 60% full power
+HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); 
+HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 /*
 Modify above
 */
-
 StackArray<HeatingStep> heating_schedule;
 
 void PID_fn(void);
@@ -88,8 +89,27 @@ void setup()
 	Modify above
 	*/
     //...
-    //...
 }
 //...
-//...
+```
+
+### Pseudo Code
+Every annealing step essentially consists of the following 4 `while` loops.
+
+```python
+annealing_step: 
+	while "(target temperature - measured temperature) is >= delta_t"
+		"Fully OPEN the relay" 
+
+	while "(target temperature - measured temperature) is <= delta_t"
+		"Fully CLOSE the relay"
+
+	while "measured temperature is within 1 C of the target temperature"
+		"Start the PID algorithm to control the relay switching"
+
+	# at this point, should already be super close to the target temperature
+
+	while "held time is less than the required holding time"
+		"Use the PID algorithm to hold at the target temperature"
+complete
 ```
