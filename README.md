@@ -9,7 +9,7 @@ Technical specifics, code, schematics and operating instructions for the RTA tem
 - FOTEK SSR-25 DA (3-32VDC Input, 25A @ 24-380 VAC Load) ... Omega SSRL240DC25 will also work.
 - Arduino Pro Micro (ATMEGA32U4, 5V/16MHZ)
 - Adafruit OLED Display (I2C, 0.96" (24.38mm) diagonal screen size, 128 x 64 pixels)
-- MAX6675 K-Type thermocouple module (soon to be replaced by the more advanced MAX31855)
+- MAX31855K K-Type thermocouple module (v1 used the MAX6675)
 
 ## Operating Instructions
 
@@ -30,6 +30,7 @@ The steps in an annealing schedule is specified by creating `HeatingStep` object
 4. The D coefficient 
 5. The number of seconds to hold at the setpoint after ramping 
 6. `delta_t` (in degrees Celsius) - in a ramp up step, as long the setpoint is at least `delta_t` higher than the measured temperature, the relay remains fully closed 
+
 
 > **Tip:** specifying small `delta_t` increases the speed of the ramp up 
 
@@ -65,7 +66,6 @@ Modify below
 HeatingStep step0(360, 4.00, 1.2, 0.0, 120, 6.0); // Set knob to 60% full power
 HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); 
 HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
-
 /*
 Modify above
 */

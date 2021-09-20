@@ -76,6 +76,7 @@ Modify below
 HeatingStep step0(300, 4.00, 1.0, 0.0, 600, 1.0); 
 HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
+
 /*
 Modify above
 */
@@ -162,6 +163,7 @@ ISR(TIMER1_COMPA_vect)
 
 void loop()
 {
+
     if (START == HIGH)
     {
         if (!heating_schedule.isEmpty())
@@ -277,8 +279,10 @@ void set_pid_tune(double kp, double ki, double kd)
 
 void reset_display(void)
 {
+
     display.clearDisplay();
     display.setCursor(0, 0);
+
 }
 
 void append_to_display(String message)
