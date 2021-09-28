@@ -12,7 +12,6 @@
 // libraries that likely need to be downloaded in library manager
 #include <PID_v1.h>
 #include <SparkFunMAX31855k.h>
-//#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
 // additional libraries included with the file
@@ -24,7 +23,6 @@
 #define START_PIN 20
 
 uint8_t START = LOW;
-//const uint8_t NONE = 256;
 
 SparkFunMAX31855k probe(8);
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
@@ -55,10 +53,7 @@ PID myPID(&(g_pidparam[0].Input),
 double T;
 unsigned long START_TIME;
 
-/*
-Modify below 
-*/
-
+// --------------------------------------------------------------------------------
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At, delta_t
 
 // Set knob to 60% full power
@@ -67,22 +62,19 @@ Modify below
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Ray's Sequence
-//HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 6.0); // changed delta_t
-//HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); // changed delta_t from 3 to 5
-//HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
+HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 6.0); // changed delta_t
+HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0);  // changed delta_t from 3 to 5
+HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
-// 70
-HeatingStep step1(450, 3.8, 0.9, 0.0, 60, 5.0); // changed delta_t from 3 to 5
+// Set knob to 70% full power
+// HeatingStep step1(450, 3.8, 0.9, 0.0, 60, 5.0); // changed delta_t from 3 to 5
 
 // 300 C 5 mbar anneal for 10 minutes
-// Set knob to 35% full power 
-HeatingStep step0(300, 4.00, 1.0, 0.0, 600, 1.0); 
-HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
+// Set knob to 35% full power
+// HeatingStep step0(300, 4.00, 1.0, 0.0, 600, 1.0);
+// HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
+// --------------------------------------------------------------------------------
 
-
-/*
-Modify above
-*/
 StackArray<HeatingStep> heating_schedule;
 
 void PID_fn(void);
@@ -92,15 +84,12 @@ void set_pid_tune(double, double, double);
 void setup()
 {
     Serial.begin(19200);
-    /*
-    Modify below 
-    */
-//    heating_schedule.push(step2);
+
+    // --------------------------------------------------------------------------------
+    heating_schedule.push(step2);
     heating_schedule.push(step1);
-//    heating_schedule.push(step0);
-    /*
-    Modify above
-    */
+    heating_schedule.push(step0);
+    // --------------------------------------------------------------------------------
 
     TCCR1A = 0; //Reset Timer1 control Registor A
 
@@ -177,7 +166,7 @@ void loop()
         }
         else
         {
-            cli(); // clear interrupt flag. This prevents any interrupts from occuring 
+            cli(); // clear interrupt flag. This prevents any interrupts from occuring
             delay(1000);
             analogWrite(SSR_PIN, 0);
             delay(1000);
@@ -191,11 +180,11 @@ void loop()
         START = digitalRead(START_PIN);
         reset_display();
         display.println("READY");
-        display.println(String(T, 2) + String(char(247)) + "C");        
+        display.println(String(T, 2) + String(char(247)) + "C");
         display.display();
         if (START == HIGH)
         {
-            cli(); // clear interrupt flag. This prevents any interrupts from occuring 
+            cli(); // clear interrupt flag. This prevents any interrupts from occuring
             START_TIME = millis();
             sei(); // restart interrupts
         }
@@ -285,7 +274,6 @@ void reset_display(void)
 
     display.clearDisplay();
     display.setCursor(0, 0);
-
 }
 
 void append_to_display(String message)
