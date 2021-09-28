@@ -67,9 +67,12 @@ Modify below
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Ray's Sequence
-//HeatingStep step0(360, 4.00, 1.2, 0.0, 120, 6.0); // changed delta_t
+//HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 6.0); // changed delta_t
 //HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0); // changed delta_t from 3 to 5
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
+
+// 70
+HeatingStep step1(450, 3.8, 0.9, 0.0, 60, 5.0); // changed delta_t from 3 to 5
 
 // 300 C 5 mbar anneal for 10 minutes
 // Set knob to 35% full power 
@@ -94,7 +97,7 @@ void setup()
     */
 //    heating_schedule.push(step2);
     heating_schedule.push(step1);
-    heating_schedule.push(step0);
+//    heating_schedule.push(step0);
     /*
     Modify above
     */
