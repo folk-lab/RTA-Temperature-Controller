@@ -71,7 +71,7 @@ unsigned long START_TIME;
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
 HeatingStep step0(330, 2.00, 1.2, 0.0, 120, 2.0); // changed delta_t
-HeatingStep step1(435, 3.8, 0.9, 0.0, 120, 2.0);  // changed delta_t from 3 to 5
+HeatingStep step1(435, 3.8, 0.9, 0.0, 40, 1.0);  // changed delta_t from 3 to 5
 HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Set knob to 70% full power
