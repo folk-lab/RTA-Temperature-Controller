@@ -1,13 +1,14 @@
 /*
   QDEV UBC, 2021
   Ray: raysu@student.ubc.ca; github @ sillyPhotons
-  Anton: 
+  Anton: antoncecic3@gmail.com
   
   Timer Interrupt Code From: https://www.techtonions.com/6-simple-ways-to-blink-arduino-led/
 */
 
 #include <SPI.h>
 #include <Wire.h>
+
 
 // libraries that likely need to be downloaded in library manager
 #include <PID_v1.h>
@@ -16,11 +17,10 @@
 
 // additional libraries included with the file
 #include <StackArray.h>
-#include "src/Bitmap.h"
 #include "src/HeatingStep.h"
 
-#define SSR_PIN 5
-#define START_PIN 20
+#define SSR_PIN 5         // PWM pin that activates the relay
+#define START_PIN 23      // Pin that is hooked up to the START button
 
 uint8_t START = LOW;
 
@@ -52,6 +52,7 @@ PID myPID(&(g_pidparam[0].Input),
 
 double T;
 unsigned long START_TIME;
+unsigned long LastSerialSend = 0;
 
 // --------------------------------------------------------------------------------
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At, delta_t
@@ -70,15 +71,15 @@ unsigned long START_TIME;
 //HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0);  // changed delta_t from 3 to 5
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
-HeatingStep step0(330, 2.00, 1.2, 0.0, 120, 2.0); // changed delta_t
-HeatingStep step1(440, 3.8, 0.9, 0.0, 60, 1.0);  // changed delta_t from 3 to 5
-HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
+String sequence_name = "Anton's seq.";
+HeatingStep step0(450, 2.00, 1.2, 0.0, 60*60*5, 7.0); // changed delta_t
+HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Set knob to 70% full power
 // HeatingStep step1(450, 3.8, 0.9, 0.0, 60, 5.0); // changed delta_t from 3 to 5
 
 // 300 C 5 mbar anneal for 10 minutes
-// Set knob to 35% full power
+// Set knob to 35% full power      
 // HeatingStep step0(300, 4.00, 1.0, 0.0, 600, 1.0);
 // HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 // --------------------------------------------------------------------------------
@@ -94,7 +95,6 @@ void setup()
     Serial.begin(19200);
 
     // --------------------------------------------------------------------------------
-    heating_schedule.push(step2);
     heating_schedule.push(step1);
     heating_schedule.push(step0);
     // --------------------------------------------------------------------------------
@@ -138,12 +138,21 @@ void setup()
     myPID.SetOutputLimits(0, 255); // although the function defaults to 0 to 255, we call this anyway to be safe
 
     display.begin(SSD1306_SWITCHCAPVCC, 0);
+    
     display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(2);
+    
     reset_display();
     delay(100);
-    display.drawBitmap(0, 0, myBitmap, 125, 65, WHITE);
-    delay(100);
+
+    display.drawRect(4, 2, 120, 60, WHITE);
+    
+    display.setTextSize(3);
+    display.setCursor(8, 8);
+    display.print("RTA");
+    
+    display.setTextSize(1);
+    display.setCursor(8, 35);
+    display.print("Folklab Instruments");
     display.display();
     delay(2000);
     reset_display();
@@ -153,12 +162,6 @@ void setup()
 ISR(TIMER1_COMPA_vect)
 {
     T = probe.readTempC();
-    if (START == HIGH)
-    {
-        Serial.print(millis() - START_TIME);
-        Serial.print(',');
-        Serial.println(T);
-    }
 }
 
 void loop()
@@ -180,6 +183,7 @@ void loop()
             delay(1000);
             START = LOW;
             sei(); // restart interrupts
+
         }
     }
     else
@@ -187,9 +191,32 @@ void loop()
         delay(110);
         START = digitalRead(START_PIN);
         reset_display();
-        display.println("READY");
-        display.println(String(T, 2) + String(char(247)) + "C");
+        display.setTextSize(2);
+        display.setCursor(0, 0);
+        display.print("Push START");
+
+        display.setTextSize(1);
+        display.setCursor(0, 15);
+        display.print("---------------------");
+
+        display.setTextSize(1);
+        display.setCursor(0, 20);
+        display.print("Loaded sequence:");
+        display.setCursor(0, 28);
+        display.print(">> " + sequence_name);
+        display.setCursor(0, 35);
+        display.print("---------------------");
+
+   
+
+        display.setTextSize(2);
+        display.setCursor(0, 45);
+        display.println("T:" + String(T, 2) + String(char(247)) + "C");
+        display.println();
         display.display();
+
+        serial_fn();
+        
         if (START == HIGH)
         {
             cli(); // clear interrupt flag. This prevents any interrupts from occuring
@@ -198,6 +225,18 @@ void loop()
         }
     }
 }
+
+void serial_fn(void)
+{
+  if (millis() - LastSerialSend > 50)
+    {
+    LastSerialSend = millis();
+    Serial.print(millis());
+    Serial.print(',');
+    Serial.println(T);
+    }
+}  
+
 
 void PID_fn(void)
 {
@@ -223,6 +262,8 @@ void PID_fn(void)
         display.println("Ramp to:");
         display.println(String(setpoint, 0) + String(char(247)) + "C");
         display.display();
+
+        serial_fn();
     }
 
     // if the overshoot is more than delta_t, then we fully open the relay
@@ -235,6 +276,8 @@ void PID_fn(void)
         display.println("Cool to:");
         display.println(String(setpoint, 0) + String(char(247)) + "C");
         display.display();
+
+        serial_fn();
     }
 
     // the temperature is within delta_t of the setpoint, but more than 1 C away from it
@@ -249,6 +292,8 @@ void PID_fn(void)
         display.println("Ramp to:");
         display.println(String(setpoint, 0) + String(char(247)) + "C");
         display.display();
+
+        serial_fn();
     }
 
     unsigned long start_time = millis(); // in ms
@@ -266,6 +311,8 @@ void PID_fn(void)
         display.print((millis() - start_time) / 1000);
         display.println("s");
         display.display();
+
+        serial_fn();
     }
 }
 
