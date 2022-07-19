@@ -2,16 +2,17 @@
 Ruiheng Su 
 August 9 2021
 
+Modified by Anton Cecic - July 2022
+
 UBC QDev
 """
 import serial
 import numpy as np
 from threading import Thread
-
 import queue
 import serial
-
 import logging
+
 logging.basicConfig(level=logging.WARNING,
                     format='(%(threadName)-9s) %(message)s',)
 
@@ -75,7 +76,7 @@ def plotting(q, fig, timeout):
 
 class SerialReader():
 
-    def __init__(self, port, **kwargs):
+    def __init__(self, port, s_to_read: float, **kwargs):
         try:
             self.serial_port = serial.Serial(port, **kwargs)
         except Exception as e:
@@ -85,10 +86,9 @@ class SerialReader():
                 raise
         self.serial_port.close()
         self.q = queue.Queue()
+        self.reader = Thread(name='Reader', target=receiving, args=(self.serial_port, self.q, s_to_read), daemon=True)
 
-    def start_reading(self, s_to_read: float):
-        self.reader = Thread(name='Reader', target=receiving, args=(
-            self.serial_port, self.q, s_to_read), daemon=True)
+    def start_reading(self):
         self.reader.start()
     
     def read_1_sample(self) -> tuple:
@@ -106,36 +106,45 @@ class SerialReader():
         except:
             self.serial_port.close()
             return None 
-        
+
+    # def stop_reading(self):
+    #     self.reader._stop()
+
+    # def closeSerial(self):
+    #     self.serial_port.close()
+
 class SerialReaderWriter(SerialReader):
 
-    def __init__(self, port, **kwargs):
-        super().__init__(port, **kwargs)
+    def __init__(self, port, s_to_read: float, filename, **kwargs):
+        super().__init__(port, s_to_read, **kwargs)
+        self.writer = Thread(name='Writter', target=writing, args=(self.q, filename), daemon=True)
 
-    def start_writing(self, filename):
-        self.writer = Thread(target=writing, args=(
-            self.q, filename), daemon=True)
+    def start_writing(self):
         self.writer.start()
 
+    # def stop_writing(self):
+    #     self.writer._stop()
 
 class SerialReaderPlotter(SerialReader):
 
-    def __init__(self, port, **kwargs):
-        super().__init__(port, **kwargs)
+    def __init__(self, port, s_to_read: float, figure, **kwargs):
+        super().__init__(port, s_to_read, **kwargs)
+        self.plotter = Thread(name='Plotter', target=plotting, args=(self.q, figure, 10))
 
-    def start_writing(self, figure):
-        self.writer = Thread(name='Plotter', target=plotting, args=(
-            self.q, figure, 10))
-        self.writer.start()
+    def start_plotting(self):
+        self.plotter.start()
 
+    # def stop_plotting(self):
+    #     self.plotter._stop()
+    
 
-if __name__ == "__main__":
-    import plotly.graph_objs as go
-    fig = go.FigureWidget(data=[go.Scatter(x=[], y=[])])
-    fig.update_layout(
-        xaxis_title="Time",
-        yaxis_title="Temperature (C)",
-    )
-    s = SerialReaderPlotter("COM8", baudrate=19200)
-    s.start_reading(10)
-    s.start_writing(fig)
+# if __name__ == "__main__":
+#     import plotly.graph_objs as go
+#     fig = go.FigureWidget(data=[go.Scatter(x=[], y=[])])
+#     fig.update_layout(
+#         xaxis_title="Time",
+#         yaxis_title="Temperature (C)",
+#     )
+#     s = SerialReaderPlotter("COM4", baudrate=19200)
+#     s.start_reading(10)
+#     s.start_writing(fig)
