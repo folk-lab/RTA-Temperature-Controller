@@ -16,7 +16,7 @@
 #include <Adafruit_SSD1306.h>
 
 // additional libraries included with the file
-#include <StackArray.h>
+#include "StackArray/StackArray.h"
 #include "src/HeatingStep.h"
 
 #define SSR_PIN 5         // PWM pin that activates the relay
@@ -49,8 +49,10 @@ PID myPID(&(g_pidparam[0].Input),
           g_pidparam[0].kd,
           P_ON_M,
           DIRECT);
+          
+double _T;  // This gets read directly
+double T;  // This only updates if _T is not a NaN
 
-double T;
 unsigned long START_TIME;
 unsigned long LastSerialSend = 0;
 
@@ -95,6 +97,7 @@ void setup()
     Serial.begin(19200);
 
     // --------------------------------------------------------------------------------
+    heating_schedule.push(step2);
     heating_schedule.push(step1);
     heating_schedule.push(step0);
     // --------------------------------------------------------------------------------
@@ -159,9 +162,20 @@ void setup()
     delay(100);
 }
 
+
 ISR(TIMER1_COMPA_vect)
 {
-    T = probe.readTempC();
+      T = probe.readTempC();
+
+///// Code below is useful in case the Arduino is recieving NaN values and the issue cannot be fixed otherwise //////////////////////////////////////////////////////////////
+///// Note: First make sure the thermocouple leads are electrically isolated from the rest of the apparatus (i.e. only electrically connected to the copper shield around the bulb)
+///// See discourse https://qdev-forum.phas.ubc.ca/t/rapid-thermal-annealer-rta-wiki/44/3
+//    _T = probe.readTempC();
+//    if (!isnan(_T))
+//    {
+//      T = _T;
+//    } 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void loop()
