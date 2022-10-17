@@ -58,13 +58,23 @@ unsigned long LastSerialSend = 0;
 
 // --------------------------------------------------------------------------------
 // Temperature [C], kP, kI, kD, Seconds to Hold Temperature At, delta_t
+// delta_t == Use MAX power until within delta_t of target temperature
 
-// Set knob to 60% full power
+// Johann's Sequence
+// Set knob to 70% full power
+// 5mBar Forming Gas
+String sequence_name = "Johann's seq.";
+HeatingStep step0(450, 4.00, 1.2, 0.0, 60, 5.0);
+HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
+
 // Ebrahim's Sequence
+// Set knob to 60% full power
+//String sequence_name = "Ebramhim's seq.";
 //HeatingStep step0(300, 4.00, 1.2, 0.0, 3600, 6.0);
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // Ray's Sequence
+//String sequence_name = "Rays's seq.";
 //HeatingStep step0(330, 4.00, 1.2, 0.0, 120, 6.0); // changed delta_t
 //HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0);  // changed delta_t from 3 to 5
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
@@ -73,12 +83,9 @@ unsigned long LastSerialSend = 0;
 //HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0);  // changed delta_t from 3 to 5
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
-String sequence_name = "Anton's seq.";
-HeatingStep step0(450, 2.00, 1.2, 0.0, 60*60*5, 7.0); // changed delta_t
-HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
-
-// Set knob to 70% full power
-// HeatingStep step1(450, 3.8, 0.9, 0.0, 60, 5.0); // changed delta_t from 3 to 5
+//String sequence_name = "Anton's seq.";
+//HeatingStep step0(450, 2.00, 1.2, 0.0, 60*60*5, 7.0); // changed delta_t
+//HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 
 // 300 C 5 mbar anneal for 10 minutes
 // Set knob to 35% full power      
@@ -97,7 +104,7 @@ void setup()
     Serial.begin(19200);
 
     // --------------------------------------------------------------------------------
-    heating_schedule.push(step2);
+//    heating_schedule.push(step2);
     heating_schedule.push(step1);
     heating_schedule.push(step0);
     // --------------------------------------------------------------------------------
