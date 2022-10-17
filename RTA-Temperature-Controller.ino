@@ -277,6 +277,10 @@ void PID_fn(void)
     while ((setpoint - T) >= delta_t)
     {
         delay(110);
+        // Pretend to use PID so that has history of Ts
+        g_pidparam[0].Input = T;
+        myPID.Compute();
+        //
         analogWrite(SSR_PIN, 255);
         reset_display();
         display.println(String(T, 2) + String(char(247)) + "C");
@@ -291,6 +295,10 @@ void PID_fn(void)
     while ((T - setpoint) >= delta_t)
     {
         delay(110);
+        // Pretend to use PID so that has history of Ts
+        g_pidparam[0].Input = T;
+        myPID.Compute();
+        //
         analogWrite(SSR_PIN, 0);
         reset_display();
         display.println(String(T, 2) + String(char(247)) + "C");
