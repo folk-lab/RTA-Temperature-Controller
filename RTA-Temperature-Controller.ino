@@ -64,8 +64,21 @@ unsigned long LastSerialSend = 0;
 // Set knob to 70% full power
 // 5mBar Forming Gas
 String sequence_name = "Johann's seq.";
-HeatingStep step0(450, 4.00, 1.2, 0.0, 60, 5.0);
-HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
+HeatingStep step0(435, 20, 20, 5.0, 60, 15.0);
+HeatingStep step1(300, 0.0, 0.0, 0.0, 1, 0);
+//HeatingStep step2(435, 5, 0, 0.0, 60, 15.0);
+//HeatingStep step3(300, 0.0, 0.0, 0.0, 1, 0);
+//HeatingStep step4(435, 2, 0, 0.0, 60, 15.0);
+//HeatingStep step5(300, 0.0, 0.0, 0.0, 1, 0);
+
+//HeatingStep step0(450, 5, 5, 0.0, 60, 15.0);
+//HeatingStep step1(300, 0.0, 0.0, 0.0, 1, 0);
+//HeatingStep step2(450, 5, 3, 0.0, 60, 15.0);
+//HeatingStep step3(300, 0.0, 0.0, 0.0, 1, 0);
+//HeatingStep step4(450, 5, 1, 0.0, 60, 15.0);
+//HeatingStep step5(300, 0.0, 0.0, 0.0, 1, 0);
+
+
 
 // Ebrahim's Sequence
 // Set knob to 60% full power
@@ -83,6 +96,7 @@ HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
 //HeatingStep step1(445, 3.8, 0.9, 0.0, 120, 5.0);  // changed delta_t from 3 to 5
 //HeatingStep step2(50, 0.0, 0.0, 0.0, 1, 0);
 
+// Anton's Sequence
 //String sequence_name = "Anton's seq.";
 //HeatingStep step0(450, 2.00, 1.2, 0.0, 60*60*5, 7.0); // changed delta_t
 //HeatingStep step1(50, 0.0, 0.0, 0.0, 1, 0);
@@ -104,6 +118,9 @@ void setup()
     Serial.begin(19200);
 
     // --------------------------------------------------------------------------------
+//    heating_schedule.push(step5);
+//    heating_schedule.push(step4);
+//    heating_schedule.push(step3);
 //    heating_schedule.push(step2);
     heating_schedule.push(step1);
     heating_schedule.push(step0);

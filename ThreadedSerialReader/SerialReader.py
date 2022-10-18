@@ -1,5 +1,5 @@
 """
-Ruiheng Su 
+Ruiheng Su
 August 9 2021
 
 Modified by Anton Cecic - July 2022
@@ -90,11 +90,11 @@ class SerialReader():
 
     def start_reading(self):
         self.reader.start()
-    
+
     def read_1_sample(self) -> tuple:
         if not self.serial_port.is_open:
             self.serial_port.open()
-        
+
         data = self.serial_port.readline()
         output = data.decode('ascii').rstrip('\r\n')
         try:
@@ -105,7 +105,7 @@ class SerialReader():
             return (t_s, float(temp))
         except:
             self.serial_port.close()
-            return None 
+            return None
 
     # def stop_reading(self):
     #     self.reader._stop()
@@ -136,7 +136,7 @@ class SerialReaderPlotter(SerialReader):
 
     # def stop_plotting(self):
     #     self.plotter._stop()
-    
+
 
 # if __name__ == "__main__":
 #     import plotly.graph_objs as go
